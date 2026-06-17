@@ -1,4 +1,5 @@
 import os
+import ssl as ssl_module
 from datetime import datetime
 from sqlalchemy import Column, String, Text, DateTime, Integer, ForeignKey
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
@@ -13,11 +14,14 @@ if _DATABASE_URL.startswith("postgres://"):
 elif _DATABASE_URL.startswith("postgresql://") and "+asyncpg" not in _DATABASE_URL:
     _DATABASE_URL = _DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-_ssl: bool | str = False
+_connect_args: dict = {}
 if ".proxy.rlwy.net" in _DATABASE_URL:
-    _ssl = True
+    _ssl_ctx = ssl_module.create_default_context()
+    _ssl_ctx.check_hostname = False
+    _ssl_ctx.verify_mode = ssl_module.CERT_NONE
+    _connect_args = {"ssl": _ssl_ctx}
 
-engine = create_async_engine(_DATABASE_URL, echo=False, connect_args={"ssl": _ssl})
+engine = create_async_engine(_DATABASE_URL, echo=False, connect_args=_connect_args)
 _session_maker = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
