@@ -12,11 +12,11 @@ async def retrieve_chunks(
     result = await db.execute(
         text("""
             SELECT c.content, c.chunk_index, d.filename,
-                   1 - (c.embedding <=> :emb::vector) AS similarity
+                   1 - (c.embedding <=> CAST(:emb AS vector)) AS similarity
             FROM chunks c
             JOIN documents d ON c.document_id = d.id
             WHERE c.document_id = :doc_id
-            ORDER BY c.embedding <=> :emb::vector
+            ORDER BY c.embedding <=> CAST(:emb AS vector)
             LIMIT :top_k
         """),
         {"emb": embedding_str, "doc_id": document_id, "top_k": top_k},
