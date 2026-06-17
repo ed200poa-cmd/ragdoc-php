@@ -39,10 +39,6 @@ async def upload_document(
     if not extracted.strip():
         raise HTTPException(status_code=400, detail="Could not extract text from file")
 
-    openai_key = os.getenv("OPENAI_API_KEY")
-    if not openai_key:
-        raise HTTPException(status_code=503, detail="OPENAI_API_KEY is not configured")
-
     doc = Document(filename=file.filename)
     db.add(doc)
     await db.flush()

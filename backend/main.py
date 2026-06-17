@@ -15,14 +15,13 @@ from routers.query import router as query_router
 async def lifespan(app: FastAPI):
     await init_db()
     anthropic = "set" if os.getenv("ANTHROPIC_API_KEY") else "NOT SET"
-    openai = "set" if os.getenv("OPENAI_API_KEY") else "NOT SET"
-    print(f"RAGDoc Backend — Anthropic: {anthropic} | OpenAI: {openai}")
+    print(f"RAGDoc Backend — Anthropic: {anthropic} | Embeddings: fastembed/bge-small-en-v1.5")
     yield
 
 
 app = FastAPI(
     title="RAGDoc — Document Q&A API",
-    description="RAG-powered document Q&A backend with Claude + pgvector",
+    description="RAG-powered document Q&A backend with Claude + pgvector + fastembed",
     version="1.0.0",
     lifespan=lifespan,
 )

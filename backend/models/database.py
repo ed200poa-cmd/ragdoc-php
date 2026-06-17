@@ -38,7 +38,7 @@ class Chunk(Base):
     document_id = Column(Integer, ForeignKey("documents.id"), nullable=False, index=True)
     content = Column(Text, nullable=False)
     chunk_index = Column(Integer, nullable=False)
-    embedding = Column(Vector(1536), nullable=True)
+    embedding = Column(Vector(384), nullable=True)
 
 
 async def get_session():

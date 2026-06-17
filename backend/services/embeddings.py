@@ -1,30 +1,33 @@
-import os
-from openai import AsyncOpenAI
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from fastembed import TextEmbedding
 
-_client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY", ""))
+_model = TextEmbedding("BAAI/bge-small-en-v1.5")
+_executor = ThreadPoolExecutor(max_workers=2)
 
 CHUNK_SIZE = 2000
 CHUNK_OVERLAP = 200
+EMBEDDING_DIM = 384
 
 
 def chunk_text(raw: str) -> list[str]:
     chunks: list[str] = []
     start = 0
     while start < len(raw):
-        end = start + CHUNK_SIZE
-        piece = raw[start:end].strip()
+        piece = raw[start : start + CHUNK_SIZE].strip()
         if piece:
             chunks.append(piece)
-        start = end - CHUNK_OVERLAP
+        start += CHUNK_SIZE - CHUNK_OVERLAP
     return chunks
 
 
 async def embed_texts(texts: list[str]) -> list[list[float]]:
-    response = await _client.embeddings.create(
-        model="text-embedding-3-small",
-        input=texts,
-    )
-    return [item.embedding for item in sorted(response.data, key=lambda x: x.index)]
+    loop = asyncio.get_event_loop()
+
+    def _run() -> list[list[float]]:
+        return [emb.tolist() for emb in _model.embed(texts)]
+
+    return await loop.run_in_executor(_executor, _run)
 
 
 async def embed_text(text: str) -> list[float]:
